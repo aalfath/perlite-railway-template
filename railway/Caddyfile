@@ -16,7 +16,9 @@
 	handle /healthz {
 		rewrite * /railway-fpm-ping.php
 		reverse_proxy 127.0.0.1:9000 {
-			transport fastcgi
+			transport fastcgi {
+				split .php
+			}
 		}
 	}
 
