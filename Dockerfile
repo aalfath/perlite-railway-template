@@ -25,4 +25,5 @@ ENV PORT=8080 \
     VAULT_DIR=/data/vault
 
 EXPOSE 8080
+STOPSIGNAL SIGTERM
 CMD ["/usr/local/bin/perlite-railway-start"]

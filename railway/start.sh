@@ -121,7 +121,7 @@ unset WEBDAV_PASSWORD SITE_PASSWORD
 log "Perlite 1.6.4 on port $PORT (PHP-FPM workers: $children, CPUs: $cpus)."
 
 stop() { kill -TERM "$fpm_pid" "$caddy_pid" 2>/dev/null || true; exit 0; }
-trap stop TERM INT
+trap stop TERM INT QUIT
 
 # BusyBox 'wait -n' doesn't return on the first exit, so poll.
 while kill -0 "$fpm_pid" 2>/dev/null && kill -0 "$caddy_pid" 2>/dev/null; do
