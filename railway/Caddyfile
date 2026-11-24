@@ -14,6 +14,7 @@
 
 	# Health check for Railway: answered by PHP-FPM's ping, so it fails if PHP is down.
 	handle /healthz {
+		rewrite * /railway-fpm-ping.php
 		reverse_proxy 127.0.0.1:9000 {
 			transport fastcgi
 		}
