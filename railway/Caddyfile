@@ -23,12 +23,14 @@
 	}
 
 	# Write access to the vault: WebDAV behind a generated password.
-	handle_path /webdav/* {
+	handle /webdav/* {
 		basic_auth {
 			{$WEBDAV_USERNAME} {$WEBDAV_HASH}
 		}
 		root * {$VAULT_DIR}
-		webdav
+		webdav {
+			prefix /webdav
+		}
 	}
 	redir /webdav /webdav/ 308
 
