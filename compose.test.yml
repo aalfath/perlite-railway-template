@@ -1,0 +1,12 @@
+services:
+  perlite:
+    build: .
+    environment:
+      PORT: "8080"
+      WEBDAV_PASSWORD: test-password-1234567890
+    ports: ["8080:8080"]
+    volumes: ["vault:/data"]
+    mem_limit: 512m
+    cpus: 1
+volumes:
+  vault: {}

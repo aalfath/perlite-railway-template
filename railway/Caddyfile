@@ -1,0 +1,69 @@
+{
+	admin off
+	auto_https off
+	persist_config off
+	servers {
+		trusted_proxies static private_ranges
+	}
+}
+
+:{$PORT} {
+	root * /var/www/perlite
+	encode gzip
+
+	# Health check for Railway: answered by PHP-FPM's ping, so it fails if PHP is down.
+	handle /healthz {
+		reverse_proxy 127.0.0.1:9000 {
+			transport fastcgi
+		}
+	}
+
+	# Write access to the vault: WebDAV behind a generated password.
+	handle_path /webdav/* {
+		basic_auth {
+			{$WEBDAV_USERNAME} {$WEBDAV_HASH}
+		}
+		root * {$VAULT_DIR}
+		webdav
+	}
+	redir /webdav /webdav/ 308
+
+	handle {
+		# Optional password for the whole site (SITE_PASSWORD), empty by default.
+		import /run/perlite-railway/site-auth.caddy
+
+		route {
+			# Same access rules as upstream's nginx config (web/config/perlite.conf).
+			@hidden path_regexp (?i)/\.(ht|env)
+			error @hidden 403
+
+			@obsidian_assets path_regexp ^/(.*)/\.obsidian/(appearance\.json|(.*)/(.*)\.(css|map))$
+			file_server @obsidian_assets
+
+			@private path_regexp (?i)\.(git|github|obsidian|trash)
+			error @private 403
+			@notes_source path_regexp (?i)\.(md|json)$
+			error @notes_source 403
+
+			# Only Perlite's two entry points run PHP; never a .php file from the vault.
+			@php_entry path /index.php /content.php
+			@other_php {
+				path_regexp (?i)\.php
+				not path /index.php /content.php
+			}
+			error @other_php 404
+
+			try_files {path} /index.php
+			reverse_proxy @php_entry 127.0.0.1:9000 {
+				transport fastcgi {
+					split .php
+				}
+			}
+			file_server
+		}
+	}
+
+	handle_errors {
+		respond "{err.status_code} {err.status_text}" {err.status_code}
+	}
+}
